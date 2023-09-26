@@ -21,15 +21,18 @@ def run_server():
                 cmd, string = data.decode().strip().split(" ", 1)
                 msg = ""
                 if cmd == "add":
+                    print("Trying to add " + string + " to storage")
                     res = handle_add(string)
                     msg = "You added " + string + " to your storage now you have " + str(res) + " item(s) in your storage"
                 elif cmd == "delete":
+                    print("Trying to delete " + string + " from storage")
                     try:
                         res = handle_deleted(string) 
                         msg = "You deleted " + string + " from your storage now you have " + str(res) + " item(s) in your storage"
                     except ValueError:
                         msg = "The string you entered doesn't exist in the storage :("
                 else:
+                    print("Trying to get the character that appears in very item storage")
                     res = handle_return_all()
                     msg = str(res) + " appear in every string your storage"
                 print(f"\nechoing '{msg!r}' back to client")
