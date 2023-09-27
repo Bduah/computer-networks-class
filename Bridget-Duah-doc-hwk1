@@ -1,0 +1,134 @@
+Overview of Application
+
+The client takes in inputs from the user and send it to the server for processing.
+This application allows users to add items(strings) to a storage, remove items from the storage and also get 
+a list of all the characters that appear in every string in the storage.
+After the client connects with the server, the client asks the user for an input.
+The client user allows the user to enter inputs as many times as they want until the enter in "quit".
+The first input, called cmd takes in a string:
+1 means the user want to perform an add request.
+2 means the user want to perform a deletion request.
+3 means the user wants to perform a "return appear in all" request.
+"quit" means the user what to close the application.
+If the user enters anything outside of these sets of inputs, 
+we print out "INVALID INPUT" and the user can enter another input.
+
+After the first input, we ask a second input based on the the first input.
+If the user enters 1, we ask the user what item they want to add.
+If the user enters 2, we ask the user what item they want to delete.
+If the user enters 3, we don't ask for a second input. 
+
+The message is now sent to the server for processing.
+In the server, if the user wanted to add an item, we add the item to the storage.
+If the user wanted to remove an item, we try to remove the item if it is in the storage, 
+else we throw an error saying the item doesn't exist in the storage.
+If the user wanted to return all the characters that appear in the storage, 
+we go through every item, check the character that appears in all the items and then return a list of 
+those characters.
+
+
+Client->Server Message Format
+The client get the msg in the format, msg(string) = cmd + item and send it to the server.
+
+
+Server->Client Message Format
+The server splits the msg from client into cmd and item and perform the necessary processes.
+After the processing, the server sends a response to the client, and throws an error if necessary.
+
+
+Example Output
+
+CLIENT
+C:\Users\smith\Desktop\Computer Network Class>python echo-client-Bridget-Duah-hwk1.py
+client starting - connecting to server at IP 127.0.0.1 and port 65432
+connection established
+
+What command do you want processed?
+Enter 1 to add
+Enter 2 to delete
+Enter 3 to return the char that appears in all the stored strings:
+Enter 'quit' to exit: 1
+
+Enter the String you want to add:
+Apple
+sending message 'add Apple' to server
+message sent, waiting for reply
+received reply 'b'You added Apple to your storage now you have 1 item(s) in your storage'' from server
+
+What command do you want processed?
+Enter 1 to add
+Enter 2 to delete
+Enter 3 to return the char that appears in all the stored strings:
+Enter 'quit' to exit: 2
+
+Enter the string you want to delete:
+so
+sending message 'delete so' to server
+message sent, waiting for reply
+received reply 'b"The string you entered doesn't exist in the storage :("' from server
+
+What command do you want processed?
+Enter 1 to add
+Enter 2 to delete
+Enter 3 to return the char that appears in all the stored strings:
+Enter 'quit' to exit: 1
+
+Enter the String you want to add:
+hello
+sending message 'add hello' to server
+message sent, waiting for reply
+received reply 'b'You added hello to your storage now you have 2 item(s) in your storage'' from server
+
+What command do you want processed?
+Enter 1 to add
+Enter 2 to delete
+Enter 3 to return the char that appears in all the stored strings:
+Enter 'quit' to exit: 3
+sending message 'returnAll Nothing' to server
+message sent, waiting for reply
+received reply 'b"['l', 'e'] appear in every string your storage"' from server
+
+What command do you want processed?
+Enter 1 to add
+Enter 2 to delete
+Enter 3 to return the char that appears in all the stored strings:
+Enter 'quit' to exit: 4
+
+INVALID INPUT, choose a command again or enter 'quit' to end.
+
+What command do you want processed?
+Enter 1 to add
+Enter 2 to delete
+Enter 3 to return the char that appears in all the stored strings:
+Enter 'quit' to exit: quit
+Client quitting at operator request.
+Client is done, exiting...
+
+
+SERVER
+
+C:\Users\smith\Desktop\Computer Network Class>python echo-server-Bridget-Duah-hwk1.py
+server starting - listening for connections at IP 127.0.0.1 and port 65432
+
+Connected established with ('127.0.0.1', 50273)
+Received client message: 'b'add Apple'' [9 bytes]
+Trying to add Apple to storage
+
+echoing ''You added Apple to your storage now you have 1 item(s) in your storage'' back to client
+Received client message: 'b'delete so'' [9 bytes]
+Trying to delete so from storage
+
+echoing '"The string you entered doesn't exist in the storage :("' back to client
+Received client message: 'b'add hello'' [9 bytes]
+Trying to add hello to storage
+
+echoing ''You added hello to your storage now you have 2 item(s) in your storage'' back to client
+Received client message: 'b'returnAll Nothing'' [17 bytes]
+Trying to get the character that appears in very item storage
+
+echoing '"['l', 'e'] appear in every string your storage"' back to client
+Received client message: 'b''' [0 bytes]
+server is done! exiting ....
+
+Acknowledgments.
+I used the code the professor provide as the skeleton for this code.
