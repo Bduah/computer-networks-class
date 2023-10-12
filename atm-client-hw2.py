@@ -28,7 +28,16 @@ def get_from_server(sock):
 
 def login_to_server(sock, acct_num, pin):
     """ Attempt to login to the bank server. Pass acct_num and pin, get response, parse and check whether login was successful. """
+    request = f"LOGIN {acct_num} {pin}"
+    send_to_server(sock, request)
+    print("sent your log in info to the server")
+    # Receive and check the response
+    response = get_from_server(sock)
     validated = 0
+    if response == True:
+        validated = 1
+    
+
     # TODO: Write this code!
     return validated
 
