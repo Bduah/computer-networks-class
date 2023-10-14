@@ -158,7 +158,36 @@ def service_connection(key, mask):
     if mask & selectors.EVENT_READ:
         recv_data = sock.recv(1024)
         if recv_data:
-            data.inb += recv_data
+            received_message = recv_data.decode()
+            parts = received_message.split()
+            # data.inb += recv_data
+            if len(parts) == 3 and parts[0] == "LOGIN":
+                acct_num = parts[1]
+                acct_pin = parts[2]
+                
+                # Perform your login logic here, e.g., validate the account number and PIN 
+                # 0 means success, 
+                # 1 means the acctNumber or the Pin doesn't have the right format
+                # 2 means the acc doesn't exist
+                # 3 means the acc exists but the user enter the wrong pin
+                if acctNumberIsValid(acct_num) and acctPinIsValid(acct_pin):
+                    if not get_acct(acct_num):
+                        response = "2"
+                    else:
+                        if get_acct(acct_num).acct_pin == acct_pin:
+                            response = "0"
+                        else:
+                            response = "3"                                                     
+                else:
+                    response = "1"
+                
+                # Send the response to the client
+                sock.send(response.encode())
+            else:
+                # Invalid login request format
+                response = "Invalid login request"
+                sock.send(response.encode())
+
         else:
             print(f"Closing connection to {data.addr}")
             sel.unregister(sock)

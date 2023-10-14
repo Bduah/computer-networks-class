@@ -28,17 +28,22 @@ def get_from_server(sock):
 
 def login_to_server(sock, acct_num, pin):
     """ Attempt to login to the bank server. Pass acct_num and pin, get response, parse and check whether login was successful. """
+    # TODO: Write this code!
     request = f"LOGIN {acct_num} {pin}"
     send_to_server(sock, request)
     print("sent your log in info to the server")
     # Receive and check the response
     response = get_from_server(sock)
     validated = 0
-    if response == True:
+    if response == "0":
         validated = 1
-    
-
-    # TODO: Write this code!
+    else:
+        if response == "1":
+            print("The account number or pin doesn't have the right format")
+        elif response == "2":
+            print("The account number you entered does not exist")
+        elif response == "3":
+            print("You entered the wrong pin")
     return validated
 
 def get_login_info():
