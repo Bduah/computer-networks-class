@@ -55,15 +55,27 @@ def get_login_info():
 def process_deposit(sock, acct_num):
     """ TODO: Write this code. """
     bal = get_acct_balance(sock, acct_num)
-    amt = input("How much would you like to deposit? (You have ${bal} available)")
+    amt = input(f"How much would you like to deposit? (You have ${bal} available)")
     # TODO communicate with the server to request the deposit, check response for success or failure.
-    print("Deposit transaction completed.")
-    return
+    request = f"DEPOSIT {acct_num} {amt}"
+    send_to_server(sock, request)
+    response = get_from_server(sock).split(" ")
+    code, new_bal = response[0], response[1]
+    if code == "0":
+        print("Deposit transaction completed.")
+        print(f"Your new balance is {new_bal}")
+    else:
+        print("Invalid Amount Given")
+    return 
 
 def get_acct_balance(sock, acct_num):
     """ TODO: Ask the server for current account balance. """
     bal = 0.0
     # TODO code needed here, to get balance from server then return it
+    request = f"GETBALANCE {acct_num}"
+    send_to_server(sock, request)
+    # Receive and check the response
+    bal = float(get_from_server(sock))
     return bal
 
 def process_withdrawal(sock, acct_num):

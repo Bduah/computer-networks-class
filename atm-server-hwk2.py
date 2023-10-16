@@ -183,6 +183,20 @@ def service_connection(key, mask):
                 
                 # Send the response to the client
                 sock.send(response.encode())
+            
+            elif len(parts) == 2 and parts[0] == "GETBALANCE":
+                acct_num = parts[1]
+                response = get_acct(acct_num).acct_balance
+                sock.send(str(response).encode())
+            
+            elif len(parts) == 3 and parts[0] == "DEPOSIT":
+                acct_num = parts[1]
+                amt = float(parts[2])
+                response = get_acct(acct_num).deposit(amt)
+                return_response = str(response[1]) + " " + str(response[2])
+                sock.send(return_response.encode())
+
+
             else:
                 # Invalid login request format
                 response = "Invalid login request"
