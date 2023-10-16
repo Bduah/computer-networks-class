@@ -83,7 +83,17 @@ def process_withdrawal(sock, acct_num):
     bal = get_acct_balance(sock, acct_num)
     amt = input(f"How much would you like to withdraw? (You have ${bal} available)")
     # TODO communicate with the server to request the withdrawal, check response for success or failure.
-    print("Withdrawal transaction completed.")
+    request = f"WITHDRAW {acct_num} {amt}"
+    send_to_server(sock, request)
+    response = get_from_server(sock).split(" ")
+    code, new_bal = response[0], response[1]
+    if code == "0":
+        print("Withdrawal transaction completed.")
+        print(f"Your new balance is {new_bal}")
+    elif code == "1":
+        print("Invalid Amount Given")
+    else:
+        print("Attempted Overdraft")
     return
 
 def process_customer_transactions(sock, acct_num):

@@ -196,6 +196,12 @@ def service_connection(key, mask):
                 return_response = str(response[1]) + " " + str(response[2])
                 sock.send(return_response.encode())
 
+            elif len(parts) == 3 and parts[0] == "WITHDRAW":
+                acct_num = parts[1]
+                amt = float(parts[2])
+                response = get_acct(acct_num).withdraw(amt)
+                return_response = str(response[1]) + " " + str(response[2])
+                sock.send(return_response.encode())
 
             else:
                 # Invalid login request format
