@@ -44,6 +44,8 @@ def login_to_server(sock, acct_num, pin):
             print("The account number you entered does not exist")
         elif response == "3":
             print("You entered the wrong pin")
+        elif response == "4":
+            print("Account already logged in :(")
     return validated
 
 def get_login_info():

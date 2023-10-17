@@ -15,7 +15,7 @@ PORT = 65432            # Port to listen on (non-privileged ports are > 1023)
 
 ALL_ACCOUNTS = dict()   # initialize an empty dictionary
 ACCT_FILE = "accounts.txt"
-
+ACTIVE_ACCOUNTS = dict()
 ##########################################################
 #                                                        #
 # Bank Server Core Functions                             #
@@ -145,10 +145,11 @@ def load_all_accounts(acct_file = "accounts.txt"):
 ##########################################################
 
 def accept_wrapper(sock):
+    global client_count
     conn, addr = sock.accept()  # Accept the connection
     print(f"Accepted connection from {addr}")
     conn.setblocking(False)
-    data = types.SimpleNamespace(addr=addr, inb=b"", outb=b"")
+    data = addr
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     sel.register(conn, events, data=data)
 
@@ -156,11 +157,11 @@ def service_connection(key, mask):
     sock = key.fileobj
     data = key.data
     if mask & selectors.EVENT_READ:
-        recv_data = sock.recv(1024)
+        recv_data = sock.recv(1024)     
         if recv_data:
             received_message = recv_data.decode()
             parts = received_message.split()
-            # data.inb += recv_data
+
             if len(parts) == 3 and parts[0] == "LOGIN":
                 acct_num = parts[1]
                 acct_pin = parts[2]
@@ -170,12 +171,16 @@ def service_connection(key, mask):
                 # 1 means the acctNumber or the Pin doesn't have the right format
                 # 2 means the acc doesn't exist
                 # 3 means the acc exists but the user enter the wrong pin
+                # 4 means acc already logged in
                 if acctNumberIsValid(acct_num) and acctPinIsValid(acct_pin):
                     if not get_acct(acct_num):
                         response = "2"
+                    elif acct_num in ACTIVE_ACCOUNTS.values():
+                        response = "4"
                     else:
                         if get_acct(acct_num).acct_pin == acct_pin:
                             response = "0"
+                            ACTIVE_ACCOUNTS[data] = acct_num
                         else:
                             response = "3"                                                     
                 else:
@@ -209,13 +214,14 @@ def service_connection(key, mask):
                 sock.send(response.encode())
 
         else:
-            print(f"Closing connection to {data.addr}")
+            ACTIVE_ACCOUNTS.remove(data)
+            print(f"Closing connection to {data}")
             sel.unregister(sock)
             sock.close()
-    if mask & selectors.EVENT_WRITE:
-        if data.outb:
-            sent = sock.send(data.outb)
-            data.outb = data.outb[sent:]
+    # if mask & selectors.EVENT_WRITE:
+    #     if data.outb:
+    #         sent = sock.send(data.outb)
+    #         data.outb = data.outb[sent:]
 
 def run_network_server():
     # Create a socket and set it to non-blocking mode
