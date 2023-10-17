@@ -214,7 +214,8 @@ def service_connection(key, mask):
                 sock.send(response.encode())
 
         else:
-            ACTIVE_ACCOUNTS.remove(data)
+            if data in ACTIVE_ACCOUNTS:
+                del ACTIVE_ACCOUNTS[data]
             print(f"Closing connection to {data}")
             sel.unregister(sock)
             sock.close()
