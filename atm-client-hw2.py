@@ -121,7 +121,6 @@ def run_atm_core_loop(sock):
     if validated:
         print("Thank you, your credentials have been validated.")
     else:
-        print("Account number and PIN do not match. Terminating ATM session.")
         return False
     process_customer_transactions(sock, acct_num)
     print("ATM session terminating.")
