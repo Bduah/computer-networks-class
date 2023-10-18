@@ -1,0 +1,118 @@
+Authors: Bridget Duah and Shalom Mhanda
+
+Message Protocol Summary:
+
+Login Request and Response:
+Message Format (ABNF):
+Request: LOGIN <account_number> <PIN>
+Response: 0 (Success) | 1 (Invalid Format) | 2 (Account Not Found) | 3 (Invalid PIN) | 4 (Account Already Logged In)
+Example:
+Request: LOGIN zz-12345 1234
+Response: 0 (Successful login) | 2 (Account Not Found)
+
+Get Balance Request and Response:
+Message Format (ABNF):
+Request: GETBALANCE <account_number>
+Response: <account_balance> (Float)
+Example:
+Request: GETBALANCE zz-12345
+Response: 1000.0
+
+Deposit Request and Response:
+Message Format (ABNF):
+Request: DEPOSIT <account_number> <amount>
+Response: <result_code> <new_balance>
+Example:
+Request: DEPOSIT zz-12345 500.0
+Response: 0 1500.0 (Successful deposit) | 1 (Invalid Amount Given)
+
+Withdrawal Request and Response:
+Message Format (ABNF):
+Request: WITHDRAW <account_number> <amount>
+Response: <result_code> <new_balance>
+Example:
+Request: WITHDRAW zz-12345 200.0
+Response: 0 1300.0 (Successful withdrawal) | 1 (Invalid Amount Given) | 2 (Attempted Overdraft)
+
+Component Fields and Description:
+<account_number>: The account number in the format AA-NNNNN (e.g., zz-12345).
+<PIN>: The four-digit Personal Identification Number.
+<amount>: The amount to deposit or withdraw (float with at most two decimal places).
+<result_code>: Numeric code to indicate the result of the operation.
+0: Success.
+1: Invalid Format or Invalid Amount Given.
+2: Account Not Found.
+3: Invalid PIN.
+4: Account Already Logged In.
+<new_balance>: The new account balance after a successful deposit or withdrawal.
+
+
+Examples of each message type defined
+Login
+Client
+request = f"LOGIN {acct_num} {pin}"
+acct_num refers to the account number
+pin refers to the pin of the account
+LOGIN is used to notify the server that a login action has to be done
+
+
+Server
+response = “0” or “1” or “2” or “3” or “4”
+
+
+Check Balance
+Client
+request = f"GETBALANCE {acct_num}"
+acct_num refers to the account number
+GETBALANCE is used to notify the server that a get balance action has to be done
+
+
+Server
+response = account_balance
+Account balance refers to the account balance, e.g. $1024.32
+Deposit
+Client
+Input “d”
+request = f"DEPOSIT {acct_num} {amt}"
+acct_num refers to the account number
+amt refers to the amount in the transaction
+DEPOSIT is used to notify the server that deposit action has to be done
+
+
+Server
+return_response = str(response[1]) + " " + str(response[2])
+response[1] is a status code. If the code is 1, it means the amount provided for the deposit was invalid. 
+If the code is 0, it means that the deposit was successful
+response[2] is the account balance.
+
+
+Withdrawal
+Client
+Input “w”
+request = f"WITHDRAW {acct_num} {amt}"
+acct_num refers to the account number
+amt refers to the amount in the transaction
+WITHDRAW is used to notify the server that a withdrawal action has to be done
+Server
+return_response = str(response[1]) + " " + str(response[2])
+response[1] is a status code. If the code is 1, it means the amount provided for the deposit was invalid. 
+If the code is 0, it means that the deposit was successful. If the code is 2, 
+it means there was an attempted overdraft.
+response[2] is the account balance.
+
+
+Preventing bank account access from more than one atm_client at a time
+To prevent bank access from more than one ATM client at a time, we used a global dictionary 
+data structure to keep track of active accounts called ACTIVE_ACCOUNTS. In order to do this, 
+we utilized the data object in the accept_wrapper() function to keep track of the client network address. 
+When there is a successful connection between the client and the server, 
+the network address is stored in the data object. When a user tries to log in, 
+the server first checks if the account number and PIN are valid. If they are valid, 
+it checks whether the account exists in the server and if the account is active, 
+that is, it is in the ACTIVE_ACCOUNTS dictionary. If it is, then a response of code 4 is sent back to 
+the client which prints out the message that the account is already logged in. 
+If the account is not in the ACTIVE_ACCOUNTS dictionary and exists in the server’s data, 
+it is added to the ACTIVE_ACCOUNTS dictionary, and the response code 0 is sent to the client which 
+prints the message of a successful log-in. When a connection is lost, the server does not receive 
+a message from the client. The server then deletes the account from the ACTIVE_ACCOUNTS dictionary 
+which allows other clients to now log-in to this account.
