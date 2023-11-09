@@ -177,17 +177,17 @@ def service_connection(key, mask):
                 # 4 means acc already logged in
                 if acctNumberIsValid(acct_num) and acctPinIsValid(acct_pin):
                     if not get_acct(acct_num):
-                        response = "2"
+                        response = "ERROR 2"
                     elif acct_num in ACTIVE_ACCOUNTS.values():
-                        response = "4"
+                        response = "ERROR 4"
                     else:
                         if get_acct(acct_num).acct_pin == acct_pin:
-                            response = "0"
+                            response = "SUCCESS 0"
                             ACTIVE_ACCOUNTS[data] = acct_num
                         else:
-                            response = "3"                                                     
+                            response = "ERROR 3"                                                     
                 else:
-                    response = "1"
+                    response = "ERROR 1"
                 
                 # Send the response to the client
                 sock.send(response.encode())
@@ -198,7 +198,7 @@ def service_connection(key, mask):
                     acct_num = ACTIVE_ACCOUNTS[data]
                     response = get_acct(acct_num).acct_balance
                 else:
-                    response = "9"
+                    response = "ERROR 9"
                 sock.send(str(response).encode())
             
             elif len(parts) == 2 and parts[0] == "DEPOSIT":
@@ -208,7 +208,7 @@ def service_connection(key, mask):
                     response = get_acct(acct_num).deposit(amt)
                     return_response = str(response[1]) + " " + str(response[2])
                 else:
-                    return_response = "9"
+                    return_response = "ERROR 9"
                 sock.send(return_response.encode())
 
             elif len(parts) == 2 and parts[0] == "WITHDRAW":
@@ -218,11 +218,11 @@ def service_connection(key, mask):
                     response = get_acct(acct_num).withdraw(amt)
                     return_response = str(response[1]) + " " + str(response[2])
                 else:
-                    return_response = "9"
+                    return_response = "ERROR 9"
                 sock.send(return_response.encode())
 
             else:
-                response = "10"
+                response = "ERROR 10"
                 sock.send(response.encode())
 
         else:

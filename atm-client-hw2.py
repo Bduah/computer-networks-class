@@ -35,18 +35,18 @@ def login_to_server(sock, acct_num, pin):
     # Receive and check the response
     response = get_from_server(sock)
     validated = 0
-    if response == "0":
+    if response == "SUCCESS 0":
         validated = 1
     else:
-        if response == "1":
+        if response == "ERROR 1":
             print("The account number or pin doesn't have the right format")
-        elif response == "2":
+        elif response == "ERROR 2":
             print("The account number you entered does not exist")
-        elif response == "3":
+        elif response == "ERROR 3":
             print("You entered the wrong pin")
-        elif response == "4":
+        elif response == "ERROR 4":
             print("Account already logged in :(")
-        elif response == "10":
+        elif response == "ERROR 10":
             print("Invalid Login Request")
     return validated
 
@@ -58,22 +58,20 @@ def get_login_info():
 
 def process_deposit(sock):
     """ TODO: Write this code. """
-    print("process deposit")
     bal = get_acct_balance(sock)
-    print("BAlance", bal)
     amt = input(f"How much would you like to deposit? (You have ${bal} available)")
     # TODO communicate with the server to request the deposit, check response for success or failure.
     request = f"DEPOSIT {amt}"
     send_to_server(sock, request)
     response = get_from_server(sock).split(" ")
     code, new_bal = response[0], response[1]
-    if code == "0":
+    if response == "ERROR 9":
+        print("Log in first before doing a transaction")
+    elif response == "ERROR 10":
+        print("Invalid Deposit request")
+    elif code == "0":
         print("Deposit transaction completed.")
         print(f"Your new balance is {new_bal}")
-    elif code == "9":
-        print("Log in first before doing a transaction")
-    elif code == "10":
-        print("Invalid Deposit request")
     else:
         print("Invalid Amount Given")
     return 
@@ -86,7 +84,7 @@ def get_acct_balance(sock):
     send_to_server(sock, request)
     # Receive and check the response
     bal_string = get_from_server(sock) 
-    if bal_string == "9":
+    if bal_string == "ERROR 9":
         print("Log in first before getting the account balance")
         bal = 0.00
     else:
@@ -103,11 +101,11 @@ def process_withdrawal(sock):
     send_to_server(sock, request)
     response = get_from_server(sock).split(" ")
     code, new_bal = response[0], response[1]
-    if code == "0":
+    if response == "ERROR 1":
+        print("Invalid Amount Given") 
+    elif code == "0":
         print("Withdrawal transaction completed.")
         print(f"Your new balance is {new_bal}")
-    elif code == "1":
-        print("Invalid Amount Given") 
     else:
         print("Attempted Overdraft")
     return
