@@ -160,7 +160,10 @@ def service_connection(key, mask):
         recv_data = sock.recv(1024)     
         if recv_data:
             received_message = recv_data.decode()
-            parts = received_message.split()
+            try:
+                parts = received_message.split()
+            except:
+                print("Invalid message was given")
 
             if len(parts) == 3 and parts[0] == "LOGIN":
                 acct_num = parts[1]
@@ -189,28 +192,37 @@ def service_connection(key, mask):
                 # Send the response to the client
                 sock.send(response.encode())
             
-            elif len(parts) == 2 and parts[0] == "GETBALANCE":
-                acct_num = parts[1]
-                response = get_acct(acct_num).acct_balance
+            # error code 9 means that the user is not logged in but what to perform an operation
+            elif len(parts) == 1 and parts[0] == "GETBALANCE":
+                if data in ACTIVE_ACCOUNTS:
+                    acct_num = ACTIVE_ACCOUNTS[data]
+                    response = get_acct(acct_num).acct_balance
+                else:
+                    response = "9"
                 sock.send(str(response).encode())
             
-            elif len(parts) == 3 and parts[0] == "DEPOSIT":
-                acct_num = parts[1]
-                amt = float(parts[2])
-                response = get_acct(acct_num).deposit(amt)
-                return_response = str(response[1]) + " " + str(response[2])
+            elif len(parts) == 2 and parts[0] == "DEPOSIT":
+                if data in ACTIVE_ACCOUNTS:
+                    acct_num = ACTIVE_ACCOUNTS[data]
+                    amt = float(parts[1])
+                    response = get_acct(acct_num).deposit(amt)
+                    return_response = str(response[1]) + " " + str(response[2])
+                else:
+                    return_response = "9"
                 sock.send(return_response.encode())
 
-            elif len(parts) == 3 and parts[0] == "WITHDRAW":
-                acct_num = parts[1]
-                amt = float(parts[2])
-                response = get_acct(acct_num).withdraw(amt)
-                return_response = str(response[1]) + " " + str(response[2])
+            elif len(parts) == 2 and parts[0] == "WITHDRAW":
+                if data in ACTIVE_ACCOUNTS:
+                    acct_num = ACTIVE_ACCOUNTS[data]
+                    amt = float(parts[1])
+                    response = get_acct(acct_num).withdraw(amt)
+                    return_response = str(response[1]) + " " + str(response[2])
+                else:
+                    return_response = "9"
                 sock.send(return_response.encode())
 
             else:
-                # Invalid login request format
-                response = "Invalid login request"
+                response = "10"
                 sock.send(response.encode())
 
         else:
