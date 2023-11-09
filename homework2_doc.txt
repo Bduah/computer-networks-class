@@ -1,5 +1,72 @@
 Authors: Bridget Duah and Shalom Mhanda
 
+<<--NEW CHANGES--
+
+P2 DIALOGUE 1: 
+LOGIN ABNF – CLIENT→SERVER
+login-request = "LOGIN" SP acct-num SP pin CRLF
+login-response = response-code SP additional-info CRLF
+acct-num = 2*ALPHA "-" 5*DIGIT
+pin = 4*DIGIT
+response-code = 1*DIGIT
+additional-info = *(VCHAR / SP)
+CRLF = %x0D.0A; Carriage return and line feed (common line ending)
+SP = %x20 ; Space character
+VCHAR = %x21-7E; Visible (printing) characters
+
+
+GETBALANCE _ CLIENT → SERVER
+balance-request = "GETBALANCE" CRLF
+balance-response = "BALANCE" SP float-value CRLF
+error-response = "ERROR" SP error-code CRLF
+float-value = 1*DIGIT "." 1*DIGIT
+error-code = 1*DIGIT
+CRLF = %x0D.0A; Carriage return and line feed (common line ending)
+SP = %x20 ; Space character
+
+
+DEPOSIT _ CLIENT → SERVER
+deposit-request = "DEPOSIT" SP amount CRLF
+deposit-response = response-code SP new-balance CRLF
+amount = 1*DIGIT
+response-code = 1*DIGIT
+new-balance = 1*DIGIT "." 1*DIGIT
+CRLF = %x0D.0A; Carriage return and line feed (common line ending)
+SP = %x20 ; Space character
+
+WITHDRAW _ CLIENT → SERVER
+withdrawal-request = "WITHDRAW" SP amount CRLF
+withdrawal-response = response-code SP new-balance CRLF
+amount = 1*DIGIT
+response-code = 1*DIGIT
+new-balance = 1*DIGIT "." 1*DIGIT
+CRLF = %x0D.0A; Carriage return and line feed (common line ending)
+SP = %x20 ; Space character
+
+
+SERVER → CLIENT
+login-response = "SUCCESS" SP "0" CRLF / 
+                 "ERROR" SP ("1" / "2" / "3" / "4" / "10") CRLF
+get balance-response = float-value CRLF / "ERROR 9" CRLF
+deposit-response = (float-value SP float-value / "ERROR 9") CRLF / 
+                   "ERROR" SP "10" CRLF
+withdraw-response = (float-value SP float-value / "ERROR 9") CRLF / 
+                    "ERROR" SP "10" CRLF
+
+Edits
+Try catch block for splitting the message from the client in the server
+Return code 10 for invalid message requests from the client
+Error code 9 means the user is not logged in yet but is trying to do a transaction
+Used in the server when trying to get account balance, deposit, withdrawal
+Used in client when interpreting codes from the server in the process deposit, get the balance
+The client does not have to send the account number each time it sends a request message for a client. 
+The server keeps track of active accounts when a new account is logged in. 
+This account will be used in all the transactions with the active client/account.
+Added message types from server to client for the client to know what type of message it is getting from the server.
+
+
+--NEW CHANGES-->>
+
 Message Protocol Summary:
 
 Login Request and Response:
@@ -116,3 +183,7 @@ it is added to the ACTIVE_ACCOUNTS dictionary, and the response code 0 is sent t
 prints the message of a successful log-in. When a connection is lost, the server does not receive 
 a message from the client. The server then deletes the account from the ACTIVE_ACCOUNTS dictionary 
 which allows other clients to now log-in to this account.
+
+
+
+
