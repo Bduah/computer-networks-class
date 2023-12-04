@@ -43,8 +43,7 @@ def checksum(string):
  
     answer = answer >> 8 | (answer << 8 & 0xff00) 
     return answer
-
-
+        
 def receiveOnePing(mySocket, ID, timeout, destAddr): 
     
     timeLeft = timeout
@@ -54,7 +53,7 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
 
         whatReady = select.select([mySocket], [], [], timeLeft) 
         howLongInSelect = (time.time() - startedSelect)
-        if whatReady[0] == []: # Timeout 
+        if whatReady[0] == []:  # Timeout
             return "Request timed out."
 
         timeReceived = time.time()
@@ -67,10 +66,22 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
             # TODO: Fetch the ICMP header from the IP packet
             # Soluton can be implemented in 6 lines of Python code.
 
+        # Extracting ICMP header
+        icmpHeader = recPacket[20:28] 
+
+        # Unpack the ICMP header
+        icmpType, code, checksum, packetID, sequence = struct.unpack("bbHHh", icmpHeader)
+
+        # Check if it's an echo reply and has the correct ID
+        if icmpType == 0 and packetID == ID:
+            # Calculate the round-trip time (RTT)
+            timeSent = struct.unpack("d", recPacket[28:])[0]
+            rtt = (timeReceived - timeSent) * 1000  # Convert to milliseconds
+            return f"Reply from {destAddr}: time = {rtt:.9f} ms"
+
         #-------------#
         # Fill in end #
         #-------------#
-
         timeLeft = timeLeft - howLongInSelect 
         
         if timeLeft <= 0:
@@ -99,6 +110,10 @@ def sendOnePing(mySocket, destAddr, ID):
     header = struct.pack("bbHHh", ICMP_ECHO_REQUEST, 0, myChecksum, ID, 1) 
     packet = header + data
 
+    # print("Header:", struct.unpack("bbHHh", header))
+    # print("Data:", struct.unpack("d", data)[0]) 
+    # print("Packet:", binascii.hexlify(packet).decode())
+
     mySocket.sendto(packet, (destAddr, 1)) # AF_INET address must be tuple, not str 
     # Both LISTS and TUPLES consist of a number of objects
     # which can be referenced by their position number within the object.
@@ -112,7 +127,7 @@ def doOnePing(destAddr, timeout):
     myID = os.getpid() & 0xFFFF # Return the current process i 
     sendOnePing(mySocket, destAddr, myID)
     delay = receiveOnePing(mySocket, myID, timeout, destAddr)
- 
+
     mySocket.close() 
     return delay
 
@@ -126,11 +141,20 @@ def ping(host, timeout=1, repeat=3):
     # Send ping requests to a server separated by approximately one second 
     # Do this only a fixed number of times as determined by 'repeat' argument
     numPings = 1
+    avg_delay = 0
     while (numPings <= repeat) :
         delay = doOnePing(dest, timeout) 
-        print(f"Ping {numPings} RTT {delay} sec")
+        print(f"Ping {numPings} RTT {delay}")
         time.sleep(1) # one second 
         numPings += 1
+        delay_split = delay.split()
+
+        if len(delay_split) == 7:
+            avg_delay += float(delay_split[-2])
+        print("\n")
+    avg_delay /= repeat
+    if avg_delay > 0:
+        print(f"The average RTT is: {avg_delay} ms")
     return delay
 
 # Runs program
